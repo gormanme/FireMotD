@@ -278,6 +278,8 @@ GatherInfo () {
     else
         Platform="Unknown"
     fi
+    CpuInfo="$(lscpu | sed -n 's/Model name:[ \t]*//p')"
+    Users="$(users)"
     CpuUtil="$(LANG=en_GB.UTF-8 mpstat 1 1 | awk '$2 ~ /CPU/ { for(i=1;i<=NF;i++) { if ($i ~ /%idle/) field=i } } $2 ~ /all/ { print 100 - $field}' | tail -1)"
     CpuProc="$(< /proc/cpuinfo grep -c processor)"
     # CPU Socket Count Idea 
@@ -551,6 +553,7 @@ $BlueScheme$LongBlueScheme$BlueScheme$ShortBlueScheme
 \e[0;38;5;17m$Fto     \e[38;5;39mRelease \e[38;5;93m= \e[38;5;27m$OsVersion
 \e[0;38;5;17m$Fto      \e[38;5;39mKernel \e[38;5;93m= \e[38;5;27m$Kernel
 \e[0;38;5;17m$Fto    \e[38;5;39mPlatform \e[38;5;93m= \e[38;5;27m$Platform
+\e[0;38;5;17m$Fto         \e[38;5;39mCPU \e[38;5;93m= \e[38;5;27m$CpuInfo
 \e[0;38;5;17m$Fto      \e[38;5;39mUptime \e[38;5;93m= \e[38;5;33m${UptimeDays} \e[38;5;27mday(s). \e[38;5;33m${UptimeHours}\e[38;5;27m:\e[38;5;33m${UptimeMinutes}\e[38;5;27m:\e[38;5;33m${UptimeSeconds}"
     if [[ ! -z $InstallDate ]] ; then
         echo -e "\e[0;38;5;17m$Fto   \e[38;5;39mInstalled \e[38;5;93m= \e[38;5;27m$InstallDate"
@@ -560,7 +563,7 @@ echo -e "\e[0;38;5;17m$Fto   \e[38;5;39mCPU Usage \e[38;5;93m= \e[38;5;33m${CpuU
 \e[0;38;5;17m$Fto      \e[38;5;39mMemory \e[38;5;93m= \e[38;5;27mFree: \e[38;5;33m${MemFree}\e[38;5;27mGB (\e[38;5;33m$MemFreePerc\e[38;5;27m%), Used: \e[38;5;33m${MemUsed}\e[38;5;27mGB (\e[38;5;33m$MemUsedPerc\e[38;5;27m%), Total: \e[38;5;33m${MemTotal}\e[38;5;27mGB
 \e[0;38;5;17m$Fto        \e[38;5;39mSwap \e[38;5;93m= \e[38;5;27mFree: \e[38;5;33m${SwapFree}\e[38;5;27mGB (\e[38;5;33m$SwapFreePerc\e[38;5;27m%), Used: \e[38;5;33m${SwapUsed}\e[38;5;27mGB (\e[38;5;33m$SwapUsedPerc\e[38;5;27m%), Total: \e[38;5;33m${SwapTotal}\e[38;5;27mGB
 \e[0;38;5;17m$Fto        \e[38;5;39mRoot \e[38;5;93m= \e[38;5;27mFree: \e[38;5;33m${RootFree}\e[38;5;27mGB (\e[38;5;33m$RootFreePerc\e[38;5;27m%), Used: \e[38;5;33m${RootUsed}\e[38;5;27mGB (\e[38;5;33m$RootUsedPerc\e[38;5;27m%), Total: \e[38;5;33m${RootTotal}\e[38;5;27mGB
-\e[0;38;5;17m$Fto     \e[38;5;39mUpdates \e[38;5;93m= \e[38;5;33m$UpdateCount\e[38;5;27m ${UpdateType} updates available
+\e[0;38;5;17m$Fto   \e[38;5;39mLogged in \e[38;5;93m= \e[38;5;33m$Users
 \e[0;38;5;17m$Fto    \e[38;5;39mSessions \e[38;5;93m= \e[38;5;33m$SessionCount\e[38;5;27m
 \e[0;38;5;17m$Fto   \e[38;5;39mProcesses \e[38;5;93m= \e[38;5;33m$ProcessCount\e[38;5;27m running processes of \e[38;5;33m$ProcessMax\e[38;5;27m maximum processes"
     if [[ $HttpdVersion =~ ^[0-9.]+$ ]] ; then
@@ -590,6 +593,7 @@ $FrS          ${KS}Ip $ES ${VCL}$IpAddress
 $FrS     ${KS}Release $ES ${VC}$OsVersion
 $FrS      ${KS}Kernel $ES ${VC}$Kernel
 $FrS    ${KS}Platform $ES ${VC}$Platform
+$FrS         ${KS}CPU $ES ${VC}$CpuInfo
 $FrS      ${KS}Uptime $ES ${VCL}${UptimeDays} ${VC}day(s). ${VCL}${UptimeHours}${VC}:${VCL}${UptimeMinutes}${VC}:${VCL}${UptimeSeconds}"
     if [[ ! -z $InstallDate ]] ; then
         echo -e "$FrS${KS}   Installed $ES ${VC}$InstallDate"
@@ -599,7 +603,7 @@ $FrS    ${KS}CPU Load $ES ${VC}$CpuLoad
 $FrS      ${KS}Memory $ES ${VC}Free: ${VCL}${MemFree}${VC} GB (${VCL}$MemFreePerc${VC}%), Used: ${VCL}${MemUsed}${VC} GB (${VCL}$MemUsedPerc${VC}%), Total: ${VCL}${MemTotal}${VC} GB
 $FrS        ${KS}Swap $ES ${VC}Free: ${VCL}${SwapFree}${VC} GB (${VCL}$SwapFreePerc${VC}%), Used: ${VCL}${SwapUsed}${VC} GB (${VCL}$SwapUsedPerc${VC}%), Total: ${VCL}${SwapTotal}${VC} GB
 $FrS        ${KS}Root $ES ${VC}Free: ${VCL}${RootFree}${VC} GB (${VCL}$RootFreePerc${VC}%), Used: ${VCL}${RootUsed}${VC} GB (${VCL}$RootUsedPerc${VC}%), Total: ${VCL}${RootTotal}${VC} GB
-$FrS     ${KS}Updates $ES ${VCL}$UpdateCount${VC} ${UpdateType} updates available.
+$FrS   ${KS}Logged in $ES ${VCL}$Users
 $FrS    ${KS}Sessions $ES ${VCL}$SessionCount
 $FrS   ${KS}Processes $ES ${VCL}$ProcessCount ${VC}running processes of ${VCL}$ProcessMax ${VC}maximum processes"
     if [[ $HttpdVersion =~ ^[0-9.]+$ ]] ; then
@@ -774,6 +778,9 @@ read -d '' HtmlCode <<EOF
                 <td>Platform</td>
                 <td>$Platform</td>
             </tr>
+	    <tr>
+                <td>CPU</td>
+                <td><$CpuInfo</td>
             <tr>
                 <td>Uptime</td>
                 <td><span>${UptimeDays}</span> day(s). <span>${UptimeHours}</span>:<span>${UptimeMinutes}</span>:<span>${UptimeSeconds}</span></td>
@@ -799,8 +806,8 @@ read -d '' HtmlCode <<EOF
                 <td>Free: <span>${RootFree}</span>GB (<span>$RootFreePerc</span>%), Used: <span>${RootUsed}</span>GB (<span>$RootUsedPerc</span>%), Total: <span>${RootTotal}</span>GB</td>
             </tr>
             <tr>
-                <td>Updates</td>
-                <td><span>$UpdateCount</span> ${UpdateType} updates available</td>
+                <td>Logged in</td>
+                <td>$Users</td>
             </tr>
             <tr>
                 <td>Sessions</td>
@@ -870,10 +877,11 @@ cat << EOF
  $bld$f1█▄█▀███▀█▄█   $f2███▀▀██▀▀███   $f3▄█▀██▀█▄   $f4█▄█▀███▀█▄█   $f5███▀▀██▀▀███   $f6▄█▀██▀█▄$rst
  $bld$f1▀█████████▀   $f2▀▀▀██▀▀██▀▀▀   $f3▀▀█▀▀█▀▀   $f4▀█████████▀   $f5▀▀▀██▀▀██▀▀▀   $f6▀▀█▀▀█▀▀$rst
  $bld$f1 ▄▀     ▀▄    $f2▄▄▀▀ ▀▀ ▀▀▄▄   $f3▄▀▄▀▀▄▀▄   $f4 ▄▀     ▀▄    $f5▄▄▀▀ ▀▀ ▀▀▄▄   $f6▄▀▄▀▀▄▀▄$rst
- $f2 Uptime ${UptimeDays} day(s). ${UptimeHours}:${UptimeMinutes}:${UptimeSeconds}
- $f3 CPU Usage: ${CpuUtil} average CPU usage over $CpuProc core(s) 
- $f4 CPU Load: $CpuLoad                                 
- $f5 Updates: $UpdateCount ${UpdateType} updates available                               $f7▌$rst
+ $f2 CPU: $CpuInfo
+ $f3 Uptime ${UptimeDays} day(s). ${UptimeHours}:${UptimeMinutes}:${UptimeSeconds}
+ $f4 CPU Usage: ${CpuUtil} average CPU usage over $CpuProc core(s) 
+ $f5 CPU Load: $CpuLoad                                 
+ $f6 Logged in: $Users                               $f7▌$rst
 EOF
 }
 
