@@ -278,6 +278,7 @@ GatherInfo () {
     else
         Platform="Unknown"
     fi
+    TopProc="$(top -b -n 1 -o +%CPU | sed -n '7,12p' | awk '{printf "%6s %-6s %-6s %-6s %-6s %-s\n",$1,$2,$9,$10,$6,$NF}')"
     CpuInfo="$(lscpu | sed -n 's/Model name:[ \t]*//p')"
     Users="$(users)"
     CpuUtil="$(LANG=en_GB.UTF-8 mpstat 1 1 | awk '$2 ~ /CPU/ { for(i=1;i<=NF;i++) { if ($i ~ /%idle/) field=i } } $2 ~ /all/ { print 100 - $field}' | tail -1)"
@@ -565,7 +566,10 @@ echo -e "\e[0;38;5;17m$Fto   \e[38;5;39mCPU Usage \e[38;5;93m= \e[38;5;33m${CpuU
 \e[0;38;5;17m$Fto        \e[38;5;39mRoot \e[38;5;93m= \e[38;5;27mFree: \e[38;5;33m${RootFree}\e[38;5;27mGB (\e[38;5;33m$RootFreePerc\e[38;5;27m%), Used: \e[38;5;33m${RootUsed}\e[38;5;27mGB (\e[38;5;33m$RootUsedPerc\e[38;5;27m%), Total: \e[38;5;33m${RootTotal}\e[38;5;27mGB
 \e[0;38;5;17m$Fto   \e[38;5;39mLogged in \e[38;5;93m= \e[38;5;33m$Users
 \e[0;38;5;17m$Fto    \e[38;5;39mSessions \e[38;5;93m= \e[38;5;33m$SessionCount\e[38;5;27m
-\e[0;38;5;17m$Fto   \e[38;5;39mProcesses \e[38;5;93m= \e[38;5;33m$ProcessCount\e[38;5;27m running processes of \e[38;5;33m$ProcessMax\e[38;5;27m maximum processes"
+\e[0;38;5;17m$Fto   \e[38;5;39mProcesses \e[38;5;93m= \e[38;5;33m$ProcessCount\e[38;5;27m running processes of \e[38;5;33m$ProcessMax\e[38;5;27m maximum processes
+\e[0;38;5;17m$Fto
+\e[38;5;33m$TopProc\e[38;5;27m"
+    
     if [[ $HttpdVersion =~ ^[0-9.]+$ ]] ; then
         echo -e "\e[0;38;5;17m$Fto      \e[38;5;39mApache \e[38;5;93m= \e[38;5;27mVersion: \e[38;5;33m$HttpdVersion"
     fi
@@ -605,7 +609,9 @@ $FrS        ${KS}Swap $ES ${VC}Free: ${VCL}${SwapFree}${VC} GB (${VCL}$SwapFreeP
 $FrS        ${KS}Root $ES ${VC}Free: ${VCL}${RootFree}${VC} GB (${VCL}$RootFreePerc${VC}%), Used: ${VCL}${RootUsed}${VC} GB (${VCL}$RootUsedPerc${VC}%), Total: ${VCL}${RootTotal}${VC} GB
 $FrS   ${KS}Logged in $ES ${VCL}$Users
 $FrS    ${KS}Sessions $ES ${VCL}$SessionCount
-$FrS   ${KS}Processes $ES ${VCL}$ProcessCount ${VC}running processes of ${VCL}$ProcessMax ${VC}maximum processes"
+$FrS   ${KS}Processes $ES ${VCL}$ProcessCount ${VC}running processes of ${VCL}$ProcessMax ${VC}maximum processes
+
+$TopProc"
     if [[ $HttpdVersion =~ ^[0-9.]+$ ]] ; then
         echo -e "$FrS${KS}      Apache $ES ${VC}Version: ${VCL}$HttpdVersion"
     fi
@@ -817,6 +823,7 @@ read -d '' HtmlCode <<EOF
                 <td>Processes</td>
                 <td><span>$ProcessCount</span> running processes of <span>$ProcessMax</span> maximum processes</td>
             </tr>
+
 EOF
     
     [[ $PhpVersion =~ ^[0-9.]+$ ]] && HtmlCode+="
